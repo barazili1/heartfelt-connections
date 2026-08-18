@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { createHash } from "crypto";
+import { botToken as getBotToken } from "@/lib/telegram/config";
 
 /**
  * One-time webhook registration helper.
@@ -13,8 +14,7 @@ export const Route = createFileRoute("/api/public/telegram/setup")({
   server: {
     handlers: {
       GET: async ({ request }) => {
-        const botToken = process.env["TELEGRAM_BOT_TOKEN"];
-        if (!botToken) return new Response("Not configured", { status: 500 });
+        const botToken = getBotToken();
 
         const url = new URL(request.url);
         if (url.searchParams.get("token") !== botToken) {

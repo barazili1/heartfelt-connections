@@ -7,9 +7,9 @@
   var KEY = "novaAccessToken";
   // The site can be hosted on another domain (e.g. the Mini App host), while the
   // token API always lives on the bot's server.
-  var API = "https://project--99406270-45da-4dc5-9009-535ed1a1f59a-dev.lovable.app";
+  var API = "https://nova-vip-one.vercel.app";
   function api(path) {
-    return (location.origin.indexOf("lovable.app") !== -1 ? "" : API) + path;
+    return (location.origin.indexOf("vercel.app") !== -1 || location.origin.indexOf("lovable.app") !== -1 ? "" : API) + path;
   }
 
   function param(name) {
