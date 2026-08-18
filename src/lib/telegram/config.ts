@@ -6,7 +6,7 @@
 export const BOT_NAME = "NOVA VIP";
 
 const FALLBACK_BASE_URL =
-  "https://project--e801e5f0-cfeb-460b-b0ba-159586e44adc-dev.lovable.app";
+  "https://project--99406270-45da-4dc5-9009-535ed1a1f59a-dev.lovable.app";
 
 /** Must be called inside a server handler (env is injected per request). */
 export function baseUrl(): string {
