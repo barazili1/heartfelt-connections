@@ -24,8 +24,7 @@ export function botToken(): string {
 export function baseUrl(): string {
   const explicit = process.env["PUBLIC_BASE_URL"];
   if (explicit) return explicit.replace(/\/+$/, "");
-  const vercel =
-    process.env["VERCEL_PROJECT_PRODUCTION_URL"] ?? process.env["VERCEL_URL"];
+  const vercel = process.env["VERCEL_PROJECT_PRODUCTION_URL"] ?? process.env["VERCEL_URL"];
   if (vercel) return `https://${vercel.replace(/^https?:\/\//, "").replace(/\/+$/, "")}`;
   return FALLBACK_BASE_URL;
 }
@@ -45,16 +44,20 @@ export function images() {
 export const APP_URL = "https://nova-vip-one.vercel.app/site/index.html";
 
 /** Link to the predictions site, carrying the player's platform ID. */
-export function appUrl(lang: Lang, id?: string, name?: string, configuredBaseUrl?: string | null, token?: string) {
+export function appUrl(
+  lang: Lang,
+  id?: string,
+  name?: string,
+  configuredBaseUrl?: string | null,
+  token?: string,
+) {
   const params = new URLSearchParams({ lang: "ar" });
   params.set("us", name && name.trim() ? name.trim() : "Guest");
   params.set("i", id && /^\d{5,20}$/.test(id) ? id : "1");
   params.set("ui", lang);
   if (token) params.set("tk", token);
   const configured = configuredBaseUrl?.trim().replace(/\/+$/, "");
-  const base = configured === "https://nova-vip-one.vercel.app"
-    ? APP_URL
-    : configured || APP_URL;
+  const base = configured === "https://nova-vip-one.vercel.app" ? APP_URL : configured || APP_URL;
   const sep = /\.html?$/i.test(base) ? "?" : "/?";
   return `${base}${sep}${params.toString()}`;
 }

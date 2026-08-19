@@ -9,18 +9,9 @@ import {
   setPlatformName,
   type Platform,
 } from "./platforms.server";
-import {
-  appUrl,
-  BOT_NAME,
-  images,
-  type Lang,
-} from "./config";
+import { appUrl, BOT_NAME, images, type Lang } from "./config";
 import { imageBytes, type ImageKey } from "./media.server";
-import {
-  getBotSettings,
-  updateBotSettings,
-  type BotSettings,
-} from "./settings.server";
+import { getBotSettings, updateBotSettings, type BotSettings } from "./settings.server";
 import {
   OWNER_TELEGRAM_ID,
   addAdmin,
@@ -28,12 +19,7 @@ import {
   listAdmins,
   removeAdmin,
 } from "./admins.server";
-import {
-  listBroadcastChatIds,
-  markTelegramUserBlocked,
-  recordTelegramUser,
-} from "./users.server";
-
+import { listBroadcastChatIds, markTelegramUserBlocked, recordTelegramUser } from "./users.server";
 
 import { botToken } from "./config";
 
@@ -98,13 +84,7 @@ const sendMessage = async (chat_id: number, text: string, keyboard?: Btn[][], no
   return noTrack ? res : track(chat_id, res);
 };
 
-
-const uploadPhoto = async (
-  chat_id: number,
-  key: ImageKey,
-  caption: string,
-  keyboard?: Btn[][],
-) => {
+const uploadPhoto = async (chat_id: number, key: ImageKey, caption: string, keyboard?: Btn[][]) => {
   const bytes = imageBytes(key);
   // Upload the bytes directly: Telegram never has to reach our host, so images
   // always arrive (and render inline, no download needed).
@@ -117,7 +97,11 @@ const uploadPhoto = async (
         form.append("parse_mode", "HTML");
       }
       if (keyboard) form.append("reply_markup", JSON.stringify({ inline_keyboard: keyboard }));
-      form.append("photo", new Blob([bytes as unknown as BlobPart], { type: "image/jpeg" }), `${key}.jpg`);
+      form.append(
+        "photo",
+        new Blob([bytes as unknown as BlobPart], { type: "image/jpeg" }),
+        `${key}.jpg`,
+      );
       const res = await fetch(`${API}/bot${token()}/sendPhoto`, { method: "POST", body: form });
       const text = await res.text();
       const json = JSON.parse(text) as { ok: boolean; description?: string };
@@ -157,9 +141,6 @@ const sendPhoto = async (
   return sendMessage(chat_id, caption, keyboard, noTrack);
 };
 
-
-
-
 const answerCallback = (id: string, text?: string, alert = false) =>
   call("answerCallbackQuery", {
     callback_query_id: id,
@@ -184,18 +165,13 @@ function escape(s: string) {
 
 /** Premium header block used by every message. */
 function head(title: string, subtitle?: string) {
-  return (
-    `👑 <b>${title}</b> 👑\n` +
-    `${RULE}\n` +
-    (subtitle ? `<i>✨ ${subtitle}</i>\n\n` : "\n")
-  );
+  return `👑 <b>${title}</b> 👑\n` + `${RULE}\n` + (subtitle ? `<i>✨ ${subtitle}</i>\n\n` : "\n");
 }
 
 function card(step: number, label: string, body: string, lang: Lang) {
   const progress = lang === "en" ? `Step ${step} / 5` : `الخطوة ${step} من 5`;
   return `${head(label)}${bar(step)}   <b>${progress}</b>\n\n${body}`;
 }
-
 
 /* ---------------------------------- copy --------------------------------- */
 
@@ -223,7 +199,6 @@ const LANG_CAPTION =
   `<i>Choose your preferred language.</i>\n` +
   `<i>اختر لغتك المفضّلة للمتابعة.</i>`;
 
-
 function copy(lang: Lang, promoCode: string) {
   const base = T[lang];
   return {
@@ -247,7 +222,12 @@ const T = {
   en: {
     platform: `${head("CHOOSE YOUR PLATFORM", "Four elite partners — pick one to activate")}🥇 ${DOT} Megapari\n🥈 ${DOT} PariPulse\n🥉 ${DOT} GoooBet\n🏅 ${DOT} WinWin\n\n${SOFT}\n<i>Select a platform below.</i>`,
     step1: (p: string) =>
-      card(1, "DOWNLOAD", `📲 Install the <b>${p}</b> app\n\n${DOT} Official app only\n${DOT} Keep it installed to receive signals`, "en"),
+      card(
+        1,
+        "DOWNLOAD",
+        `📲 Install the <b>${p}</b> app\n\n${DOT} Official app only\n${DOT} Keep it installed to receive signals`,
+        "en",
+      ),
     dl: (p: string) => `📥 Download · ${p}`,
     step2: card(
       2,
@@ -256,7 +236,12 @@ const T = {
       "en",
     ),
     join: "📢 Join the channel",
-    step4: card(4, "DEPOSIT", `💰 Fund your account\n\n${DOT} Minimum <b>300 EGP</b>\n${DOT} or <b>6 USD</b>`, "en"),
+    step4: card(
+      4,
+      "DEPOSIT",
+      `💰 Fund your account\n\n${DOT} Minimum <b>300 EGP</b>\n${DOT} or <b>6 USD</b>`,
+      "en",
+    ),
     step5: card(
       5,
       "YOUR ID",
@@ -281,7 +266,12 @@ const T = {
   ar: {
     platform: `${head("اختر منصتك", "أربع منصات نخبة — اختر واحدة للتفعيل")}🥇 ${DOT} Megapari\n🥈 ${DOT} PariPulse\n🥉 ${DOT} GoooBet\n🏅 ${DOT} WinWin\n\n${SOFT}\n<i>اختر منصتك من الأزرار بالأسفل.</i>`,
     step1: (p: string) =>
-      card(1, "التحميل", `📲 حمّل تطبيق <b>${p}</b>\n\n${DOT} استخدم التطبيق الرسمي فقط\n${DOT} احتفظ به لاستقبال الإشارات`, "ar"),
+      card(
+        1,
+        "التحميل",
+        `📲 حمّل تطبيق <b>${p}</b>\n\n${DOT} استخدم التطبيق الرسمي فقط\n${DOT} احتفظ به لاستقبال الإشارات`,
+        "ar",
+      ),
     dl: (p: string) => `📥 تحميل · ${p}`,
     step2: card(
       2,
@@ -290,7 +280,12 @@ const T = {
       "ar",
     ),
     join: "📢 الاشتراك في القناة",
-    step4: card(4, "الإيداع", `💰 قم بتمويل حسابك\n\n${DOT} الحد الأدنى <b>300 جنيه</b>\n${DOT} أو <b>6 دولار</b>`, "ar"),
+    step4: card(
+      4,
+      "الإيداع",
+      `💰 قم بتمويل حسابك\n\n${DOT} الحد الأدنى <b>300 جنيه</b>\n${DOT} أو <b>6 دولار</b>`,
+      "ar",
+    ),
     step5: card(
       5,
       "الـ ID",
@@ -311,7 +306,6 @@ const T = {
     needJoinMsg: `🔐 <b>الاشتراك في القناة إجباري</b>\n${SOFT}\nلازم تشترك في قناتنا الرسمية قبل التحقق.\n\n${DOT} اضغط <b>الاشتراك في القناة</b>\n${DOT} وبعدين اضغط <b>التحقق الآن</b> تاني.`,
     membershipUnavailable: "⏳ تعذر فحص الاشتراك مؤقتًا",
     membershipUnavailableMsg: `⚠️ <b>تعذر فحص عضوية القناة</b>\n${SOFT}\nلازم يكون البوت مشرفًا في القناة الرسمية علشان يقدر يتأكد من اشتراك الأعضاء.\n\n<i>تواصل مع الدعم وحاول مرة تانية.</i>`,
-
   },
 } as const;
 
@@ -343,7 +337,6 @@ function termsCaption(lang: Lang, platform: string, promo: string) {
     `🆔 <b>05 · الـ ID</b>\nابعت ID حسابك هنا (من 10 لـ 14 رقم).\n\n` +
     `${SOFT}\n<i>✨ نفّذ الخطوات بالترتيب ثم اضغط «التحقق الآن».</i>`
   );
-
 }
 
 async function sendSteps(chatId: number, lang: Lang, p: Platform, settings: BotSettings) {
@@ -357,15 +350,33 @@ async function sendSteps(chatId: number, lang: Lang, p: Platform, settings: BotS
   ]);
 }
 
-async function sendVerified(chatId: number, lang: Lang, settings: BotSettings, id?: string, name?: string) {
+async function sendVerified(
+  chatId: number,
+  lang: Lang,
+  settings: BotSettings,
+  id?: string,
+  name?: string,
+) {
   const t = T[lang];
-  await sendPhoto(chatId, "verified", t.verified, [
-    [{ text: t.open, web_app: { url: appUrl(lang, id, name, settings.appBaseUrl, createAccessToken(id ?? chatId)) } }],
-    [{ text: t.support, url: settings.supportUrl }],
-    [{ text: t.channel, url: settings.channelUrl }],
-  ], true);
+  await sendPhoto(
+    chatId,
+    "verified",
+    t.verified,
+    [
+      [
+        {
+          text: t.open,
+          web_app: {
+            url: appUrl(lang, id, name, settings.appBaseUrl, createAccessToken(id ?? chatId)),
+          },
+        },
+      ],
+      [{ text: t.support, url: settings.supportUrl }],
+      [{ text: t.channel, url: settings.channelUrl }],
+    ],
+    true,
+  );
 }
-
 
 /* --------------------------------- admin --------------------------------- */
 
@@ -574,9 +585,10 @@ async function broadcastNotification(rawText: string): Promise<string> {
   let failed = 0;
   const message = `📣 <b>إشعار جديد</b>\n${SOFT}\n\n${escape(text)}`;
   for (const chatId of chatIds) {
-    const result = (await sendMessage(chatId, message, undefined, true)) as
-      | { ok?: boolean; error_code?: number }
-      | null;
+    const result = (await sendMessage(chatId, message, undefined, true)) as {
+      ok?: boolean;
+      error_code?: number;
+    } | null;
     if (result?.ok) {
       sent += 1;
     } else {
@@ -601,7 +613,9 @@ async function handleAdminCommand(chatId: number, text: string) {
     await sendMessage(
       chatId,
       `👥 <b>الأدمن</b>\n${SOFT}\n` +
-        admins.map((a) => `<code>${a.id}</code>${a.label ? ` — ${escape(a.label)}` : ""}`).join("\n"),
+        admins
+          .map((a) => `<code>${a.id}</code>${a.label ? ` — ${escape(a.label)}` : ""}`)
+          .join("\n"),
       undefined,
       true,
     );
@@ -635,12 +649,16 @@ function resolveChannelChat(settings: BotSettings): string | null {
 type MembershipResult = "member" | "not_member" | "unavailable";
 
 /** Check membership without treating Telegram permission failures as non-membership. */
-async function channelMembership(settings: BotSettings, userId?: number): Promise<MembershipResult> {
+async function channelMembership(
+  settings: BotSettings,
+  userId?: number,
+): Promise<MembershipResult> {
   const chat = resolveChannelChat(settings);
   if (!chat || !userId) return "unavailable";
-  const res = (await call("getChatMember", { chat_id: chat, user_id: userId })) as
-    | { ok: boolean; result?: { status?: string; is_member?: boolean } }
-    | null;
+  const res = (await call("getChatMember", { chat_id: chat, user_id: userId })) as {
+    ok: boolean;
+    result?: { status?: string; is_member?: boolean };
+  } | null;
   if (!res?.ok) return "unavailable";
   const status = res?.result?.status;
   if (
@@ -679,7 +697,6 @@ export async function handleUpdate(update: any) {
     // Show the account NAME (first + last), not the @username.
     const name = ([cb.from?.first_name, cb.from?.last_name].filter(Boolean).join(" ") ||
       cb.from?.username) as string | undefined;
-
 
     if (action === "admin") {
       if (!(await isAdmin(cb.from?.id))) {
