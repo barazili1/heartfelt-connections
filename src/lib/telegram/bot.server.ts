@@ -687,12 +687,15 @@ async function channelMembership(
   userId?: number,
 ): Promise<MembershipResult> {
   const chat = resolveChannelChat(settings);
-  if (!chat || !userId) return "unavailable";
+  // Private channels (t.me/+invite) can't be queried until the numeric chat id is
+  // known. Never block the user for that — fail open and let verification continue.
+  if (!chat || !userId) return "member";
   const res = (await call("getChatMember", { chat_id: chat, user_id: userId })) as {
     ok: boolean;
     result?: { status?: string; is_member?: boolean };
   } | null;
-  if (!res?.ok) return "unavailable";
+  if (!res?.ok) return "member";
+
   const status = res?.result?.status;
   if (
     status === "member" ||
