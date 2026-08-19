@@ -119,6 +119,42 @@ export type Database = {
         }
         Relationships: []
       }
+      telegram_users: {
+        Row: {
+          chat_id: number
+          created_at: string
+          first_name: string | null
+          is_blocked: boolean
+          language_code: string | null
+          last_name: string | null
+          last_seen_at: string
+          telegram_user_id: number | null
+          username: string | null
+        }
+        Insert: {
+          chat_id: number
+          created_at?: string
+          first_name?: string | null
+          is_blocked?: boolean
+          language_code?: string | null
+          last_name?: string | null
+          last_seen_at?: string
+          telegram_user_id?: number | null
+          username?: string | null
+        }
+        Update: {
+          chat_id?: number
+          created_at?: string
+          first_name?: string | null
+          is_blocked?: boolean
+          language_code?: string | null
+          last_name?: string | null
+          last_seen_at?: string
+          telegram_user_id?: number | null
+          username?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
