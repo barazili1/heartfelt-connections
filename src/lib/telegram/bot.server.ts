@@ -890,12 +890,23 @@ export async function handleUpdate(update: any) {
     }
     // Reply to a ForceReply prompt → apply the requested field value.
     const field = fieldFromPrompt(msg.reply_to_message?.text);
+    // Photo reply → broadcast that photo (caption = notification text).
+    const photos = msg.photo as Array<{ file_id: string }> | undefined;
+    const photoFileId = photos?.length ? photos[photos.length - 1]?.file_id : undefined;
+    const caption = String(msg.caption ?? "").trim();
+    if (field === "broadcast" && photoFileId) {
+      const result = await broadcastNotification(caption, photoFileId);
+      await sendMessage(chatId, result, undefined, true);
+      await sendAdminPanel(chatId, await getBotSettings());
+      return;
+    }
     if (field && text) {
       const result = await applyFieldValue(field, text);
       await sendMessage(chatId, result, undefined, true);
       await sendAdminPanel(chatId, await getBotSettings());
       return;
     }
+
     if (await handleAdminCommand(chatId, text)) return;
   } else if (text === "/admin" || text === "/panel") {
     await sendMessage(
