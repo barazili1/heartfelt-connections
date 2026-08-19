@@ -1,12 +1,11 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
+import { botToken } from "./config";
 
 /** Access tokens are valid for 12 hours. */
 const TTL_MS = 12 * 60 * 60 * 1000;
 
 function key(): string {
-  const token = process.env["TELEGRAM_BOT_TOKEN"];
-  if (!token) throw new Error("TELEGRAM_BOT_TOKEN is not configured");
-  return `nova-site-access:${token}`;
+  return `nova-site-access:${botToken()}`;
 }
 
 function sign(payload: string): string {
@@ -38,8 +37,13 @@ export function verifyAccessToken(token: string | null | undefined): { ok: boole
  * Lets the app mint a fresh access token when the old one expires.
  */
 export function verifyInitData(initData: string): { ok: boolean; userId?: string | undefined } {
-  const token = process.env["TELEGRAM_BOT_TOKEN"];
-  if (!token || !initData) return { ok: false };
+  if (!initData) return { ok: false };
+  let token: string;
+  try {
+    token = botToken();
+  } catch {
+    return { ok: false };
+  }
   const params = new URLSearchParams(initData);
   const hash = params.get("hash");
   if (!hash) return { ok: false };

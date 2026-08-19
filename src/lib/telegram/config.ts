@@ -5,8 +5,20 @@
 
 export const BOT_NAME = "NOVA VIP";
 
-const FALLBACK_BASE_URL =
-  "https://project--99406270-45da-4dc5-9009-535ed1a1f59a-dev.lovable.app";
+const FALLBACK_BASE_URL = "https://nova-vip-one.vercel.app";
+
+/**
+ * ضع توكن البوت هنا (من BotFather) — لا حاجة لأي إعداد أسرار/Secrets.
+ * لو حابب تستخدم متغير بيئة على Vercel اسمه TELEGRAM_BOT_TOKEN فهو له الأولوية.
+ */
+export const BOT_TOKEN = "";
+
+/** Must be called inside a server handler. */
+export function botToken(): string {
+  const t = process.env["TELEGRAM_BOT_TOKEN"] || BOT_TOKEN;
+  if (!t) throw new Error("ضع توكن البوت في src/lib/telegram/config.ts (BOT_TOKEN)");
+  return t;
+}
 
 /** Must be called inside a server handler (env is injected per request). */
 export function baseUrl(): string {

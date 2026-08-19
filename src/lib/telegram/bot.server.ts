@@ -30,13 +30,11 @@ import {
 } from "./admins.server";
 
 
+import { botToken } from "./config";
+
 const API = "https://api.telegram.org";
 
-function token(): string {
-  const t = process.env["TELEGRAM_BOT_TOKEN"];
-  if (!t) throw new Error("TELEGRAM_BOT_TOKEN is not configured");
-  return t;
-}
+const token = botToken;
 
 async function call(method: string, body: Record<string, unknown>) {
   const res = await fetch(`${API}/bot${token()}/${method}`, {

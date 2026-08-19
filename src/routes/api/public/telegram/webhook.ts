@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { createHash, timingSafeEqual } from "crypto";
+import { botToken as getBotToken } from "@/lib/telegram/config";
 import { handleUpdate } from "@/lib/telegram/bot.server";
 
 function expectedSecret(botToken: string) {
@@ -16,8 +17,7 @@ export const Route = createFileRoute("/api/public/telegram/webhook")({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        const botToken = process.env["TELEGRAM_BOT_TOKEN"];
-        if (!botToken) return new Response("Not configured", { status: 500 });
+        const botToken = getBotToken();
 
         const given = request.headers.get("X-Telegram-Bot-Api-Secret-Token") ?? "";
         if (!safeEqual(given, expectedSecret(botToken))) {
