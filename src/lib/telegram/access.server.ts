@@ -37,8 +37,13 @@ export function verifyAccessToken(token: string | null | undefined): { ok: boole
  * Lets the app mint a fresh access token when the old one expires.
  */
 export function verifyInitData(initData: string): { ok: boolean; userId?: string | undefined } {
-  const token = process.env["TELEGRAM_BOT_TOKEN"];
-  if (!token || !initData) return { ok: false };
+  if (!initData) return { ok: false };
+  let token: string;
+  try {
+    token = botToken();
+  } catch {
+    return { ok: false };
+  }
   const params = new URLSearchParams(initData);
   const hash = params.get("hash");
   if (!hash) return { ok: false };
