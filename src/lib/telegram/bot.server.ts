@@ -28,6 +28,11 @@ import {
   listAdmins,
   removeAdmin,
 } from "./admins.server";
+import {
+  listBroadcastChatIds,
+  markTelegramUserBlocked,
+  recordTelegramUser,
+} from "./users.server";
 
 
 import { botToken } from "./config";
@@ -372,7 +377,8 @@ type EditableField =
   | "promo_code"
   | "add_platform"
   | "add_admin"
-  | "remove_admin";
+  | "remove_admin"
+  | "broadcast";
 
 const FIELD_LABEL: Record<EditableField, string> = {
   channel_url: "رابط قناة التليجرام",
@@ -383,6 +389,7 @@ const FIELD_LABEL: Record<EditableField, string> = {
   add_admin: "إضافة أدمن (ID تليجرام)",
   remove_admin: "حذف أدمن (ID تليجرام)",
   add_platform: "منصة جديدة — ابعتها بالشكل: الاسم | الرابط",
+  broadcast: "نص الإشعار الذي سيصل لكل المستخدمين",
 };
 
 /** Dynamic per-platform fields: purl_<key> (link), pname_<key> (name). */
@@ -451,6 +458,7 @@ async function sendAdminPanel(chatId: number, settings: BotSettings) {
     { text: "➕ إضافة أدمن", callback_data: "admin:edit:add_admin" },
     { text: "➖ حذف أدمن", callback_data: "admin:edit:remove_admin" },
   ]);
+  rows.push([{ text: "📣 إرسال إشعار للمستخدمين", callback_data: "admin:edit:broadcast" }]);
   rows.push([{ text: "🔄 تحديث اللوحة", callback_data: "admin:panel" }]);
   await sendMessage(chatId, adminPanel(settings, admins, platforms), rows, true);
 }
@@ -483,6 +491,7 @@ function validHttpUrl(value: string) {
 
 /** Applies a new value for a field. Returns the message to show the admin. */
 async function applyFieldValue(field: string, value: string): Promise<string> {
+  if (field === "broadcast") return broadcastNotification(value);
   if (isDynamicField(field)) {
     const kind = field.slice(0, field.indexOf("_"));
     const key = field.slice(field.indexOf("_") + 1);
@@ -543,6 +552,7 @@ const COMMAND_FIELDS: Record<string, EditableField> = {
   "/set_promo": "promo_code",
   "/add_admin": "add_admin",
   "/remove_admin": "remove_admin",
+  "/broadcast": "broadcast",
 };
 
 const ADMIN_HELP =
@@ -551,6 +561,31 @@ const ADMIN_HELP =
     .map((c) => `<code>${c} &lt;القيمة&gt;</code>`)
     .join("\n") +
   `\n<code>/admins</code> — عرض الأدمن\n<code>/bot_on</code> · <code>/bot_off</code>\n\nكل تعديل يُحفظ فورًا ويظهر للمستخدمين.`;
+
+async function broadcastNotification(rawText: string): Promise<string> {
+  const text = rawText.trim();
+  if (!text) return "⚠️ نص الإشعار مطلوب.";
+  if (text.length > 3500) return "⚠️ الإشعار طويل جدًا — الحد الأقصى 3500 حرف.";
+
+  const chatIds = await listBroadcastChatIds();
+  if (!chatIds.length) return "⚠️ لا يوجد مستخدمون مسجلون حتى الآن.";
+
+  let sent = 0;
+  let failed = 0;
+  const message = `📣 <b>إشعار جديد</b>\n${SOFT}\n\n${escape(text)}`;
+  for (const chatId of chatIds) {
+    const result = (await sendMessage(chatId, message, undefined, true)) as
+      | { ok?: boolean; error_code?: number }
+      | null;
+    if (result?.ok) {
+      sent += 1;
+    } else {
+      failed += 1;
+      if (result?.error_code === 403) await markTelegramUserBlocked(chatId);
+    }
+  }
+  return `✅ تم إرسال الإشعار إلى <b>${sent}</b> مستخدم.${failed ? `\n⚠️ تعذر الإرسال إلى <b>${failed}</b>.` : ""}`;
+}
 
 async function handleAdminCommand(chatId: number, text: string) {
   const space = text.indexOf(" ");
@@ -637,6 +672,7 @@ export async function handleUpdate(update: any) {
     const chatId = cb.message?.chat?.id as number | undefined;
     const data = String(cb.data ?? "");
     if (!chatId) return;
+    await recordTelegramUser(chatId, cb.from);
     const parts = data.split(":");
     const action = parts[0];
     const lang: Lang = parts[1] === "en" ? "en" : "ar";
@@ -766,6 +802,7 @@ export async function handleUpdate(update: any) {
   const msg = update?.message ?? update?.edited_message;
   const chatId = msg?.chat?.id as number | undefined;
   if (!chatId) return;
+  await recordTelegramUser(chatId, msg.from);
   const text = String(msg.text ?? "").trim();
 
   if (await isAdmin(msg.from?.id)) {
