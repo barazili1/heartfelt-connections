@@ -430,7 +430,7 @@ const FIELD_LABEL: Record<EditableField, string> = {
   add_admin: "إضافة أدمن (ID تليجرام)",
   remove_admin: "حذف أدمن (ID تليجرام)",
   add_platform: "منصة جديدة — ابعتها بالشكل: الاسم | الرابط",
-  broadcast: "نص الإشعار الذي سيصل لكل المستخدمين",
+  broadcast: "نص الإشعار الذي سيصل لكل المستخدمين (أو ابعت صورة مع التعليق)",
 };
 
 /** Dynamic per-platform fields: purl_<key> (link), pname_<key> (name). */
