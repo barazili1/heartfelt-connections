@@ -48,7 +48,7 @@ export function appUrl(
   lang: Lang,
   id?: string,
   name?: string,
-  configuredBaseUrl?: string | null,
+  _configuredBaseUrl?: string | null,
   token?: string,
 ) {
   const params = new URLSearchParams({ lang: "ar" });
@@ -56,10 +56,10 @@ export function appUrl(
   params.set("i", id && /^\d{5,20}$/.test(id) ? id : "1");
   params.set("ui", lang);
   if (token) params.set("tk", token);
-  const configured = configuredBaseUrl?.trim().replace(/\/+$/, "");
-  const base = configured === "https://nova-vip-one.vercel.app" ? APP_URL : configured || APP_URL;
-  const sep = /\.html?$/i.test(base) ? "?" : "/?";
-  return `${base}${sep}${params.toString()}`;
+  // Always use the canonical public page. Older database values pointed at
+  // protected/deleted deployments and caused Telegram's WebView to show
+  // "Forbidden" even after the source configuration was updated.
+  return `${APP_URL}?${params.toString()}`;
 }
 
 /** Telegram channel users must join. */
