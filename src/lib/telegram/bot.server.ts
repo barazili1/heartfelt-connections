@@ -550,7 +550,9 @@ async function applyFieldValue(field: string, value: string): Promise<string> {
     return "✅ تم ربط القناة، التحقق من الاشتراك شغّال دلوقتي.";
   }
   if (!validHttpUrl(value)) return "⚠️ ابعت رابط كامل يبدأ بـ https://";
-  await updateBotSettings({ [field]: value } as any);
+  if (field === "channel_url") await updateBotSettings({ channel_url: value });
+  if (field === "support_url") await updateBotSettings({ support_url: value });
+  if (field === "app_base_url") await updateBotSettings({ app_base_url: value });
   return "✅ تم حفظ الرابط بنجاح.";
 }
 
