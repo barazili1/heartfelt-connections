@@ -1,4 +1,4 @@
-import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { botDb } from "./db.server";
 
 type TelegramUser = {
   id?: number;
@@ -9,7 +9,7 @@ type TelegramUser = {
 };
 
 export async function recordTelegramUser(chatId: number, user?: TelegramUser) {
-  const { error } = await supabaseAdmin.from("telegram_users").upsert(
+  const { error } = await botDb().from("telegram_users").upsert(
     {
       chat_id: chatId,
       telegram_user_id: user?.id ?? null,
@@ -26,7 +26,7 @@ export async function recordTelegramUser(chatId: number, user?: TelegramUser) {
 }
 
 export async function listBroadcastChatIds(): Promise<number[]> {
-  const { data, error } = await supabaseAdmin
+  const { data, error } = await botDb()
     .from("telegram_users")
     .select("chat_id")
     .eq("is_blocked", false)
@@ -36,7 +36,7 @@ export async function listBroadcastChatIds(): Promise<number[]> {
 }
 
 export async function markTelegramUserBlocked(chatId: number) {
-  const { error } = await supabaseAdmin
+  const { error } = await botDb()
     .from("telegram_users")
     .update({ is_blocked: true })
     .eq("chat_id", chatId);

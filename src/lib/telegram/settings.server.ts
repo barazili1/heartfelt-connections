@@ -1,4 +1,4 @@
-import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { botDb } from "./db.server";
 import { PLATFORMS, type PlatformKey } from "./config";
 
 export type BotSettings = {
@@ -31,7 +31,7 @@ export const DEFAULT_BOT_SETTINGS: BotSettings = {
 };
 
 export async function getBotSettings(): Promise<BotSettings> {
-  const { data, error } = await supabaseAdmin
+  const { data, error } = await botDb()
     .from("telegram_bot_settings")
     .select(
       "enabled,channel_url,channel_chat_id,support_url,platform_1_url,platform_2_url,platform_3_url,platform_4_url,platform_1_enabled,platform_2_enabled,platform_3_enabled,platform_4_enabled,promo_code,app_base_url",
@@ -83,7 +83,7 @@ type SettingUpdate = Partial<{
 }>;
 
 export async function updateBotSettings(values: SettingUpdate) {
-  const { error } = await supabaseAdmin
+  const { error } = await botDb()
     .from("telegram_bot_settings")
     .update(values as any)
     .eq("id", 1);

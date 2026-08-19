@@ -1,4 +1,4 @@
-import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { botDb } from "./db.server";
 
 export type Platform = {
   key: string;
@@ -10,7 +10,7 @@ export type Platform = {
 };
 
 export async function listPlatforms(): Promise<Platform[]> {
-  const { data, error } = await supabaseAdmin
+  const { data, error } = await botDb()
     .from("telegram_platforms")
     .select("key,name,emoji,download_url,enabled,sort_order")
     .order("sort_order", { ascending: true });
@@ -40,7 +40,7 @@ export async function addPlatform(name: string, downloadUrl: string, emoji = "ðŸ
   const used = new Set(all.map((p) => p.key));
   while (used.has(`p${n}`)) n += 1;
   const sort = all.reduce((max, p) => Math.max(max, p.sortOrder), 0) + 1;
-  const { error } = await supabaseAdmin.from("telegram_platforms").insert({
+  const { error } = await botDb().from("telegram_platforms").insert({
     key: `p${n}`,
     name,
     emoji,
@@ -52,12 +52,12 @@ export async function addPlatform(name: string, downloadUrl: string, emoji = "ðŸ
 }
 
 export async function deletePlatform(key: string) {
-  const { error } = await supabaseAdmin.from("telegram_platforms").delete().eq("key", key);
+  const { error } = await botDb().from("telegram_platforms").delete().eq("key", key);
   if (error) throw new Error(error.message);
 }
 
 export async function setPlatformEnabled(key: string, enabled: boolean) {
-  const { error } = await supabaseAdmin
+  const { error } = await botDb()
     .from("telegram_platforms")
     .update({ enabled } as any)
     .eq("key", key);
@@ -65,7 +65,7 @@ export async function setPlatformEnabled(key: string, enabled: boolean) {
 }
 
 export async function setPlatformUrl(key: string, downloadUrl: string) {
-  const { error } = await supabaseAdmin
+  const { error } = await botDb()
     .from("telegram_platforms")
     .update({ download_url: downloadUrl } as any)
     .eq("key", key);
@@ -73,7 +73,7 @@ export async function setPlatformUrl(key: string, downloadUrl: string) {
 }
 
 export async function setPlatformName(key: string, name: string) {
-  const { error } = await supabaseAdmin
+  const { error } = await botDb()
     .from("telegram_platforms")
     .update({ name } as any)
     .eq("key", key);
