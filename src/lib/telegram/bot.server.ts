@@ -893,7 +893,7 @@ export async function handleUpdate(update: any) {
 
   if (text.startsWith("/start")) {
     const name = msg.from?.first_name ?? "Player";
-    flowMessages.delete(chatId);
+    if (typeof msg.message_id === "number") await purgeChat(chatId, msg.message_id);
     await sendPhoto(chatId, "welcome", welcomeCaption(name));
     await sendPhoto(chatId, "language", LANG_CAPTION, [
       [
