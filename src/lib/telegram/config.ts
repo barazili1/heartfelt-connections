@@ -11,7 +11,7 @@ const FALLBACK_BASE_URL = "https://nova-vip-one.vercel.app";
  * ضع توكن البوت هنا (من BotFather) — لا حاجة لأي إعداد أسرار/Secrets.
  * لو حابب تستخدم متغير بيئة على Vercel اسمه TELEGRAM_BOT_TOKEN فهو له الأولوية.
  */
-export const BOT_TOKEN = "";
+export const BOT_TOKEN = "8203633294:AAGtiFJS0rfaeLMa3bNVTDiIcp-u-rTn91I";
 
 /** Must be called inside a server handler. */
 export function botToken(): string {
