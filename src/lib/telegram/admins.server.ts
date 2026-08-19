@@ -1,10 +1,10 @@
-import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { botDb } from "./db.server";
 
 /** Hard-coded owner: can never be locked out. */
 export const OWNER_TELEGRAM_ID = 8358563622;
 
 export async function listAdmins(): Promise<{ id: number; label: string | null }[]> {
-  const { data, error } = await supabaseAdmin
+  const { data, error } = await botDb()
     .from("telegram_admins")
     .select("telegram_id,label")
     .order("added_at", { ascending: true });
@@ -23,7 +23,7 @@ export async function isAdminUser(id: unknown): Promise<boolean> {
   const num = Number(id);
   if (!Number.isFinite(num)) return false;
   if (num === OWNER_TELEGRAM_ID) return true;
-  const { data } = await supabaseAdmin
+  const { data } = await botDb()
     .from("telegram_admins")
     .select("telegram_id")
     .eq("telegram_id", num)
@@ -32,7 +32,7 @@ export async function isAdminUser(id: unknown): Promise<boolean> {
 }
 
 export async function addAdmin(id: number, label?: string) {
-  const { error } = await supabaseAdmin
+  const { error } = await botDb()
     .from("telegram_admins")
     .upsert({ telegram_id: id, label: label ?? null } as any, { onConflict: "telegram_id" });
   if (error) throw new Error(error.message);
@@ -40,7 +40,7 @@ export async function addAdmin(id: number, label?: string) {
 
 export async function removeAdmin(id: number) {
   if (id === OWNER_TELEGRAM_ID) throw new Error("owner");
-  const { error } = await supabaseAdmin
+  const { error } = await botDb()
     .from("telegram_admins")
     .delete()
     .eq("telegram_id", id);
