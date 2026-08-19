@@ -1,0 +1,11 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": null,
+  "buildCommand": "bun run build",
+  "outputDirectory": ".output/public",
+  "functions": {
+    ".output/server/index.mjs": {
+      "includeFiles": ".output/server/**"
+    }
+  }
+}
