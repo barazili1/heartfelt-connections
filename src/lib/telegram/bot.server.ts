@@ -27,6 +27,13 @@ const API = "https://api.telegram.org";
 
 const token = botToken;
 
+type TelegramResponse = {
+  ok: boolean;
+  error_code?: number;
+  description?: string;
+  result?: { message_id?: number; [key: string]: unknown };
+};
+
 async function call(method: string, body: Record<string, unknown>) {
   const res = await fetch(`${API}/bot${token()}/${method}`, {
     method: "POST",
@@ -36,9 +43,13 @@ async function call(method: string, body: Record<string, unknown>) {
   const text = await res.text();
   if (!res.ok) {
     console.error(`Telegram ${method} failed [${res.status}]: ${text}`);
-    return null;
+    try {
+      return JSON.parse(text) as TelegramResponse;
+    } catch {
+      return { ok: false, error_code: res.status } satisfies TelegramResponse;
+    }
   }
-  const json = JSON.parse(text) as { ok: boolean; description?: string };
+  const json = JSON.parse(text) as TelegramResponse;
   if (!json.ok) console.error(`Telegram ${method} error: ${json.description}`);
   return json;
 }
@@ -63,6 +74,9 @@ function track(chat_id: number, res: any) {
   flowMessages.set(chat_id, list);
   return res;
 }
+
+const wait = (milliseconds: number) =>
+  new Promise<void>((resolve) => globalThis.setTimeout(resolve, milliseconds));
 
 async function clearFlow(chat_id: number, keep?: number) {
   const ids = flowMessages.get(chat_id) ?? [];
@@ -597,6 +611,7 @@ async function broadcastNotification(rawText: string): Promise<string> {
       failed += 1;
       if (result?.error_code === 403) await markTelegramUserBlocked(chatId);
     }
+    await wait(40);
   }
   return `✅ تم إرسال الإشعار إلى <b>${sent}</b> مستخدم.${failed ? `\n⚠️ تعذر الإرسال إلى <b>${failed}</b>.` : ""}`;
 }
