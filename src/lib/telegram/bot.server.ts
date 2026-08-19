@@ -87,6 +87,22 @@ async function clearFlow(chat_id: number, keep?: number) {
   }
 }
 
+/**
+ * Wipe the chat history above a /start: Telegram has no "clear chat" API for
+ * bots, so we delete message ids counting back from the current one in batches.
+ * Failures (too old / not ours) are ignored.
+ */
+async function purgeChat(chat_id: number, from_message_id: number, depth = 120) {
+  flowMessages.delete(chat_id);
+  const ids: number[] = [];
+  for (let id = from_message_id; id > Math.max(0, from_message_id - depth); id--) ids.push(id);
+  const BATCH = 30;
+  for (let i = 0; i < ids.length; i += BATCH) {
+    const slice = ids.slice(i, i + BATCH);
+    await call("deleteMessages", { chat_id, message_ids: slice });
+  }
+}
+
 const sendMessage = async (chat_id: number, text: string, keyboard?: Btn[][], noTrack = false) => {
   const res = await call("sendMessage", {
     chat_id,
