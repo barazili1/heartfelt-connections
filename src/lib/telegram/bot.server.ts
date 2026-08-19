@@ -890,7 +890,16 @@ export async function handleUpdate(update: any) {
       return;
     }
     if (await handleAdminCommand(chatId, text)) return;
+  } else if (text === "/admin" || text === "/panel") {
+    await sendMessage(
+      chatId,
+      "🔒 <b>هذا الخيار متاح للأدمن فقط.</b>",
+      undefined,
+      true,
+    );
+    return;
   }
+
 
   if (!settings.enabled && !(await isAdmin(msg.from?.id))) return;
 
