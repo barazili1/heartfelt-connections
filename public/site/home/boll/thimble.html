@@ -124,22 +124,28 @@
 
         .balls {
             display: flex;
+            flex-direction: row;
             align-items: center;
-            gap: 15px;
+            justify-content: center;
+            gap: 10px;
             position: absolute;
             top: 35%;
             transform: translateY(-50%);
-            flex-wrap: wrap;
+            flex-wrap: nowrap;
+            width: 100%;
         }
 
         .ball-container {
             position: relative;
             display: inline-block;
             margin: 10px 0;
+            flex: 0 0 auto;
         }
 
         .ball-img {
-            max-width: 140px;
+            max-width: 100px;
+            width: 100px;
+            height: auto;
             vertical-align: middle;
             transition: transform 0.5s ease;
             position: relative;
