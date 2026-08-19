@@ -605,9 +605,9 @@ const ADMIN_HELP =
     .join("\n") +
   `\n<code>/admins</code> — عرض الأدمن\n<code>/bot_on</code> · <code>/bot_off</code>\n\nكل تعديل يُحفظ فورًا ويظهر للمستخدمين.`;
 
-async function broadcastNotification(rawText: string): Promise<string> {
+async function broadcastNotification(rawText: string, photoFileId?: string): Promise<string> {
   const text = rawText.trim();
-  if (!text) return "⚠️ نص الإشعار مطلوب.";
+  if (!text && !photoFileId) return "⚠️ نص الإشعار مطلوب.";
   if (text.length > 3500) return "⚠️ الإشعار طويل جدًا — الحد الأقصى 3500 حرف.";
 
   const chatIds = await listBroadcastChatIds();
@@ -617,7 +617,13 @@ async function broadcastNotification(rawText: string): Promise<string> {
   let failed = 0;
   const message = `📣 <b>إشعار جديد</b>\n${SOFT}\n\n${escape(text)}`;
   for (const chatId of chatIds) {
-    const result = (await sendMessage(chatId, message, undefined, true)) as {
+    const result = (photoFileId
+      ? await call("sendPhoto", {
+          chat_id: chatId,
+          photo: photoFileId,
+          ...(text ? { caption: message.slice(0, 1024), parse_mode: "HTML" } : {}),
+        })
+      : await sendMessage(chatId, message, undefined, true)) as {
       ok?: boolean;
       error_code?: number;
     } | null;
@@ -631,6 +637,7 @@ async function broadcastNotification(rawText: string): Promise<string> {
   }
   return `✅ تم إرسال الإشعار إلى <b>${sent}</b> مستخدم.${failed ? `\n⚠️ تعذر الإرسال إلى <b>${failed}</b>.` : ""}`;
 }
+
 
 async function handleAdminCommand(chatId: number, text: string) {
   const space = text.indexOf(" ");
