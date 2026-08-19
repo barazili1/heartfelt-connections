@@ -430,7 +430,7 @@ const FIELD_LABEL: Record<EditableField, string> = {
   add_admin: "إضافة أدمن (ID تليجرام)",
   remove_admin: "حذف أدمن (ID تليجرام)",
   add_platform: "منصة جديدة — ابعتها بالشكل: الاسم | الرابط",
-  broadcast: "نص الإشعار الذي سيصل لكل المستخدمين",
+  broadcast: "نص الإشعار الذي سيصل لكل المستخدمين (أو ابعت صورة مع التعليق)",
 };
 
 /** Dynamic per-platform fields: purl_<key> (link), pname_<key> (name). */
@@ -605,9 +605,9 @@ const ADMIN_HELP =
     .join("\n") +
   `\n<code>/admins</code> — عرض الأدمن\n<code>/bot_on</code> · <code>/bot_off</code>\n\nكل تعديل يُحفظ فورًا ويظهر للمستخدمين.`;
 
-async function broadcastNotification(rawText: string): Promise<string> {
+async function broadcastNotification(rawText: string, photoFileId?: string): Promise<string> {
   const text = rawText.trim();
-  if (!text) return "⚠️ نص الإشعار مطلوب.";
+  if (!text && !photoFileId) return "⚠️ نص الإشعار مطلوب.";
   if (text.length > 3500) return "⚠️ الإشعار طويل جدًا — الحد الأقصى 3500 حرف.";
 
   const chatIds = await listBroadcastChatIds();
@@ -617,7 +617,13 @@ async function broadcastNotification(rawText: string): Promise<string> {
   let failed = 0;
   const message = `📣 <b>إشعار جديد</b>\n${SOFT}\n\n${escape(text)}`;
   for (const chatId of chatIds) {
-    const result = (await sendMessage(chatId, message, undefined, true)) as {
+    const result = (photoFileId
+      ? await call("sendPhoto", {
+          chat_id: chatId,
+          photo: photoFileId,
+          ...(text ? { caption: message.slice(0, 1024), parse_mode: "HTML" } : {}),
+        })
+      : await sendMessage(chatId, message, undefined, true)) as {
       ok?: boolean;
       error_code?: number;
     } | null;
@@ -631,6 +637,7 @@ async function broadcastNotification(rawText: string): Promise<string> {
   }
   return `✅ تم إرسال الإشعار إلى <b>${sent}</b> مستخدم.${failed ? `\n⚠️ تعذر الإرسال إلى <b>${failed}</b>.` : ""}`;
 }
+
 
 async function handleAdminCommand(chatId: number, text: string) {
   const space = text.indexOf(" ");
@@ -883,12 +890,23 @@ export async function handleUpdate(update: any) {
     }
     // Reply to a ForceReply prompt → apply the requested field value.
     const field = fieldFromPrompt(msg.reply_to_message?.text);
+    // Photo reply → broadcast that photo (caption = notification text).
+    const photos = msg.photo as Array<{ file_id: string }> | undefined;
+    const photoFileId = photos?.length ? photos[photos.length - 1]?.file_id : undefined;
+    const caption = String(msg.caption ?? "").trim();
+    if (field === "broadcast" && photoFileId) {
+      const result = await broadcastNotification(caption, photoFileId);
+      await sendMessage(chatId, result, undefined, true);
+      await sendAdminPanel(chatId, await getBotSettings());
+      return;
+    }
     if (field && text) {
       const result = await applyFieldValue(field, text);
       await sendMessage(chatId, result, undefined, true);
       await sendAdminPanel(chatId, await getBotSettings());
       return;
     }
+
     if (await handleAdminCommand(chatId, text)) return;
   } else if (text === "/admin" || text === "/panel") {
     await sendMessage(
